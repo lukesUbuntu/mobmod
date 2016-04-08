@@ -1,0 +1,38 @@
+{
+  "description": "MOB Wars - MOD Beta version. you must be in this group http://www.facebook.com/groups/modsBetaScripts/",
+  "name": "MOD {B.E.T.A} [MOB Wars]",
+  "version": "0.0.0.1",
+  "icons": {
+    "16": "images/mod16.png",
+    "32": "images/mod32.png",
+    "48": "images/mod48.png",
+    "64": "images/mod64.png",
+    "128": "images/mod128.png"
+  },
+  "manifest_version": 2,
+  "background": {
+    "page": "background.html"
+  },
+  "permissions": [
+    "tabs",
+    "webRequest",
+    "bookmarks",
+    "unlimitedStorage",
+    "*://*/"
+  ],
+  "content_scripts": [
+    {
+      "all_frames": true,
+      "matches": [
+        "*://mobwars-prod-ssl.metamoki.com/*",
+        "*://apps.facebook.com/mobwars/*",
+        "*://lb0.mw.production.monstergamesinc.com/*",
+        "*://lb.mobwars.metamoki.com/*"
+      ],
+      "js": [
+        "MOD Mob BETA v0.0.0.1user.js",
+        "loader.js"
+      ]
+    }
+  ]
+}

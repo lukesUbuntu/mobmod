@@ -1,0 +1,5 @@
+* Copyright Notice
+ 
+* #################
+ 
+* Lucifers MOD is based on the opensource version of MWADDON v(0.5.0.7) - v(0.6.7.2) (Copyright David Cabrera)
