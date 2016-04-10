@@ -3,71 +3,173 @@ var gulp = require('gulp');
 var concat = require('gulp-concat');
 var clean = require('gulp-clean');
 var uglify = require('gulp-uglify');
-var sourceName = 'MOD_Mob_BETA';
 var watch = require('gulp-watch');
 
-var manifest = require('./lib/manifest.json'),
-    distroChromeStore = sourceName + ' v' + manifest.version + '.zip';    //for chromestore
-distro = sourceName + '_v' + manifest.version + 'user.js';
 
-//manifest.content_scripts.js = distro;
-manifest.content_scripts[0].js[0] = distro;
+var mobWars = {
+    version : '0.0.0.1',
+    name : 'MOD_Mob_BETA',
+    scripts : [
+    './source/topload/*.js',
+    './source/settings.js',
+    './source/mod/*.js',
+    './source/launch.js'
+    ],
+    userScripts : [],
+    userScripts_top :  ['./lib/top.js'],
+    userScripts_bottom : ['./lib/bottom.js'],
+    devMode : true,
+    distro : '',
+    manifest :  require('./lib/manifest.json'),
+    init : function(){
+        if (this.manifest.length <= 0) return console.log("Failed to init manifest")
+
+        this.distro = this.name + '_v' + this.version ;
+
+
+        this.manifest.content_scripts[0].js[0] = (this.devMode == true) ? this.distro + '.user.js' : this.distro + '.min.user.js';
+
+            //this.manifest.content_scripts[0].js[0] = this.distro + 'min.user.js';
+
+        this.userScripts = this.userScripts_top.concat(this.scripts).concat(this.userScripts_bottom);
+       // this.userScripts.push(this.userScripts_bottom);
+
+
+
+
+    }
+};
+//update mainfest scripts
+mobWars.init();
+
 
 gulp.task('buildUserScript', function () {
-    return gulp.src(
-        [
-            './lib/top.js',
-            './source/loaded.js',
-            './lib/bottom.js'
-        ])
-        .pipe(concat(distro))
-        .pipe(uglify())
-        .pipe(gulp.dest('./build/chromeExtension/'))
-        .pipe(gulp.dest('./build/firefox/'));
+    fs.readFile(__dirname + '/source/menu.html', function(err, data) {
+        //var base64data = new Buffer(data).toString('base64');
+        var theme = "MOD.mainMenu = '" + new Buffer(data).toString('base64') + "'";
+
+        fs.writeFile(__dirname + '/source/topload/mainmenu.js', theme, {
+            flag: "w"
+        }, function (err) {
+            if (err) return console.log("buildUserScript",err);
+
+            console.log("created",mobWars.manifest.content_scripts[0].js[0]);
+
+            if (mobWars.devMode == true)
+               return gulp.src(mobWars.userScripts)
+                    .pipe(concat(mobWars.manifest.content_scripts[0].js[0]))
+                    .pipe(gulp.dest('./build/chromeExtension/'))
+                    .pipe(gulp.dest('./build/userscript/'));
+
+
+
+                return gulp.src(mobWars.userScripts)
+                    .pipe(concat(mobWars.manifest.content_scripts[0].js[0]))
+                    .pipe(uglify())
+                    .pipe(gulp.dest('./build/chromeExtension/'))
+                    .pipe(gulp.dest('./build/userscript/'));
+
+
+
+        });
+    });
+
 
 });
+
+gulp.task('buildDistro', function () {
+    fs.readFile(__dirname + '/source/menu.html', function(err, data) {
+        //var base64data = new Buffer(data).toString('base64');
+        var theme = "MOD.mainMenu = '" + new Buffer(data).toString('base64') + "'";
+
+        fs.writeFile(__dirname + '/source/topload/mainmenu.js', theme, {
+            flag: "w"
+        }, function (err) {
+            if (err) return console.log(err);
+
+        });
+    });
+    return gulp.src(mobWars.scripts)
+        .pipe(concat(mobWars.name + '_distro.js'))
+        //.pipe(uglify())
+        .pipe(gulp.dest('./distro/'));
+});
+
+
 gulp.task('chromeExtension', function () {
     gulp.src('./lib/chromeextension/images/*')
         .pipe(gulp.dest('./build/chromeExtension/images/'));
 
     gulp.src('./lib/chromeextension/*.js')
         .pipe(uglify())
-        .pipe(gulp.dest('./build/chromeExtension/'))
+        .pipe(gulp.dest('./build/chromeExtension/'));
 
     return gulp.src(
         [
             './lib/chromeextension/*', '!./lib/chromeextension/*.js'
         ])
         .pipe(gulp.dest('./build/chromeExtension/'))
+
 });
 
 
 //clean build directory
 gulp.task('clean', function () {
-    return gulp.src('build/*', {read: false})
+    return gulp.src(['build/*', 'distro/*','source/topload/mainmenu.js'], {read: false})
         .pipe(clean());
 });
 
-gulp.task('updateManifest', ['chromeExtension'], function (cb) {
+gulp.task('buildChrome', ['chromeExtension'], function (cb) {
     //var file = path.join(__dirname, '/build/chromeExtension/manifest.json');
-    fs.writeFile(__dirname + '/build/chromeExtension/manifest.json', JSON.stringify(manifest, null, 2), {
+    fs.writeFile(__dirname + '/build/chromeExtension/manifest.json', JSON.stringify(mobWars.manifest, null, 2), {
         flag: "w"
     }, function (err) {
         if (err) return console.log(err);
 
     });
-
-
 });
-gulp.task('watch', function() {
-    watch(__dirname+ '/source/*.js', function() {
+
+
+
+gulp.task('watch', function () {
+    /*
+    watch(mobWars.scripts, function () {
+        gulp.run(['buildUserScript']);
+    });
+    */
+    watch('./source/**/*.js', function () {
         gulp.run(['buildUserScript']);
     });
 });
 
 gulp.task('default', ['clean'], function () {
-    gulp.start('chromeExtension');
-    gulp.start('buildUserScript')
-    gulp.start('updateManifest');
-    gulp.start('watch');
+    var build = getArg("--build");
+
+    if (/chrome/i.test(build) || build === true) {
+        console.log("Building Chrome Extension", (build === true) ? " & userscript" : '');
+        gulp.start('buildChrome');
+        gulp.start('buildUserScript');
+    }
+    if (/userscript/i.test(build)) {
+        console.log("Building userscript")
+        gulp.start('buildUserScript');
+    }
+
+    if (getArg("--watch")) {
+        mobWars.devMode = true;
+        mobWars.init();
+
+        console.log("watching source folder for changes")
+        gulp.start('buildChrome');
+        gulp.start('buildUserScript');
+        gulp.start('watch');
+    }
+
+    gulp.start('buildDistro');
 });
+
+function getArg(key) {
+    var index = process.argv.indexOf(key);
+    var next = process.argv[index + 1];
+    return (index < 0) ? null : (!next || next[0] === "-") ? true : next;
+}
