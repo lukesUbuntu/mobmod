@@ -26,7 +26,7 @@
             }
         }
         
-        if (/index.php/.test(global.location)) {
+        if (/index.php|do.php/.test(global.location) || document.getElementById('container-content')) {
             // make sure it's the real game
             if (document.getElementById('container-content')) {
                 console.log("MOD.start")
@@ -36,7 +36,7 @@
                 console.log("Failed to launch")
             }
         }else{
-            console.log("global.location.href",getDocLocation())
+            console.log("global.location.href",getLocation())
         }
     } catch (e) {
         console.log("launch.js", e)

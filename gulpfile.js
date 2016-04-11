@@ -10,6 +10,7 @@ var mobWars = {
     version : '0.0.0.1',
     name : 'MOD_Mob_BETA',
     scripts : [
+    './source/vendors/*.js',
     './source/topload/*.js',
     './source/settings.js',
     './source/mod/*.js',
@@ -76,8 +77,7 @@ gulp.task('buildUserScript', function () {
 
 
 });
-
-gulp.task('buildDistro', function () {
+gulp.task('buildMenu', function () {
     fs.readFile(__dirname + '/source/menu.html', function(err, data) {
         //var base64data = new Buffer(data).toString('base64');
         var theme = "MOD.mainMenu = '" + new Buffer(data).toString('base64') + "'";
@@ -89,6 +89,9 @@ gulp.task('buildDistro', function () {
 
         });
     });
+});
+gulp.task('buildDistro',['buildMenu'], function () {
+
     return gulp.src(mobWars.scripts)
         .pipe(concat(mobWars.name + '_distro.js'))
         //.pipe(uglify())

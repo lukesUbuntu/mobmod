@@ -50,8 +50,12 @@ MOD.Ajax = function () {
         console.log('r', r)
         console.log('o', o)
         if (/jobs/i.test(o.url)) {
-            MOD.jobs();
+            return MOD.jobs();
         }
+        if (/request_dialog/i.test(o.url)) {
+            return MOD.request();
+        }
+
     });
 
 };

@@ -6,6 +6,12 @@ var global = {}
 var MOD = {}
 
 
+var Util = {
+    isString : function(string){
+       return (typeof string == "string")
+    }
+};
+
 function create(obj) {
     if (obj === null || typeof obj !== 'object') {
         return obj;

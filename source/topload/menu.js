@@ -3,9 +3,10 @@
  */
 var Menu = {
     items: [],
+    div : '#modmob_menu',
     init: function () {
         try {
-            $(Base64.decode(MOD.mainMenu)).prependTo('#container-content');
+            $(Base64.decode(MOD.mainMenu)).prependTo($('#container').parent());
 
         } catch (e) {
             console.log("e",e);
@@ -15,10 +16,47 @@ var Menu = {
         this.items.forEach(function(item){
             Menu.add(item);
         });
+
+
+        $(Menu.div).mouseleave(this.hide);
+        $(Menu.div).mouseenter(this.show);
+        $('#modmob_menu_arrow').mouseenter(this.show);
+        console.log("testing scroll");
+        $('.sticky').Stickyfill();
+        /*
+        var $window = $(document),
+            $stickyEl = $(Menu.div),
+            elTop = $stickyEl.offset().top;
+
+        $window.scroll(function() {
+            $("#modmob_menu_container").css('top',$window.scrollTop())
+            console.log("$window.scrollTop()",$window.scrollTop())
+            $stickyEl.toggleClass('sticky', $window.scrollTop() > elTop);
+        });*/
     },
     add : function(menuItem){
         var $item = $('<li>').text(menuItem.text).click(menuItem.click);
-        $item.appendTo($('#modmob_menu ul'));
+        $item.appendTo($('ul',Menu.div));
+    },
+    show: function () {
+        var b;
+        /*while ((b = $('#fbmw_menu #like_button span'))
+            .length > 1) {
+            b.last()
+                .remove();
+        }*/
+        $(Menu.div)
+            .stop()
+            .animate({
+                'left': '0px'
+            }, 'normal');
+    },
+    hide: function () {
+        $(Menu.div)
+            .stop()
+            .animate({
+                'left': -170
+            }, 'normal');
     }
 };
 
