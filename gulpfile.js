@@ -19,7 +19,7 @@ var mobWars = {
     userScripts : [],
     userScripts_top :  ['./lib/top.js'],
     userScripts_bottom : ['./lib/bottom.js'],
-    devMode : true,
+    devMode : false,
     distro : '',
     manifest :  require('./lib/manifest.json'),
     init : function(){

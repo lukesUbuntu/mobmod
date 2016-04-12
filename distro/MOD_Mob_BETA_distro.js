@@ -270,6 +270,7 @@ MOD.jobs = function () {
  * Created by luke on 4/11/16.
  */
 MOD.request = function () {
+    var requests_run = [];
     var $request_box = $('.modal.request_dialog_modal');
 
     if (!$("#accept_all",$request_box).length <= 0) return false;
@@ -277,9 +278,44 @@ MOD.request = function () {
 
     var $tab = $('<div>')
                 .attr('id','accept_all')
-                .addClass('tab tab_inactive');
+                .addClass('tab tab_inactive')
+                .text('Accept ALL')
+                .click(function(){
+                    var request = $('.tab.tab_active').eq(0).attr('name').toLowerCase();
+                    if (request == 'all') request = 'category_content';
+
+                    requests_run = [];
+                    $('.request.'+request).each(function(index,item){
+                        //MobWars.Requests.do_request_reject('373854727');
+             ;
+                        var request_id = $(item).attr('request_id');
+                        var request_button = $('.mw-ui-btn',item).parent();
+
+                        if (/return false/.test(request_button.attr('onclick')) == false)
+                        requests_run.push(request_button.attr('onclick'));
+                    });
+                    console.log("requests_run",requests_run)
+                    process_request(0);
+                });
 
     $('.category_nav', $request_box).append($tab)
+
+
+    //budget process till we create ajax
+    function process_request(index) {
+
+        if(index < requests_run.length) {
+            setTimeout(function() {
+                 console.log("processing",requests_run[index])
+                eval(requests_run[index])
+                process_request(++index);
+            }, 500);
+        }else {
+            console.log("finished processing requests")
+            requests_run = [];
+        }
+    }
+
 };
 /**
  * Created by luke on 4/8/16.
@@ -303,7 +339,7 @@ MOD.isLoaded = function (callback) {
         if (typeof window.jQuery !== "undefined" && typeof window.FB !== 'undefined') {
             //if (MobWars = unsafeWindow.MobWars){
             clearInterval(jQueryLoad);
-            unsafeWindow.$ = jQuery.noConflict(true);
+            $ = window.jQuery;
             console.log("jQuery Loaded " + $.fn.jquery);
 
             if (typeof callback == "function")
@@ -325,10 +361,13 @@ MOD.isLoaded = function (callback) {
 
 MOD.Ajax = function () {
 
+ 
     console.log("ajax loaded")
-    //jQuery(document).ajaxComplete(function (e, r, o) {
 
-    $(document).bind("ajaxComplete", function (e, r, o) {
+    $(document).ajaxComplete(function (e, r, o) {
+
+    //$(document).bind("ajaxComplete", function (e, r, o) {
+
         console.log('e', e)
         console.log('r', r)
         console.log('o', o)
@@ -338,7 +377,46 @@ MOD.Ajax = function () {
         if (/request_dialog/i.test(o.url)) {
             return MOD.request();
         }
+        var raw_result = r.responseText;
 
+        raw_result || (raw_result = "");
+        var split_data = raw_result.split("[[[JS_CALLBACK]]]", 2),
+            javascript_content = "",
+            inline_js = "",
+            html_content = "";
+
+        if (split_data.length != 2) trace("no javascript in callback"), html_content = raw_result;
+        else {
+            html_content = split_data[0], javascript_content = split_data[1];
+            if (javascript_content.indexOf("[[[INLINE_JS]]]") >= 0) {
+                var jssplit = javascript_content.split("[[[INLINE_JS]]]", 2);
+                javascript_content = jssplit[0], inline_js = jssplit[1]
+            }
+            if (javascript_content) try {
+                eval("" + javascript_content)
+            } catch (ex) {
+                trace("exection in server javascript", ex), trace(javascript_content)
+            }
+        }
+        if (r.success) try {
+            console.log("tring success")
+            r.success && r.success(html_content)
+        } catch (ex) {
+            trace("error in opts.success handler from Server.request call.", ex)
+        }
+        if (r.complete) try {
+            console.log("tring complete")
+            r.complete && r.complete(!0, html_content)
+        } catch (ex) {
+            trace("error in opts.complete handler from Server.request call.", ex)
+        }
+        if (inline_js.length > 0) try {
+            console.log("tring inline")
+            eval(inline_js)
+        } catch (ex) {
+            trace("error in inline javascript handler from Server.request call.", ex), trace(inline_js)
+        }
+        return MobWars.Game.isNativeMobileApp() && refreshScroll()
     });
 
 };
@@ -346,12 +424,14 @@ MOD.Ajax = function () {
 MOD.Start = function () {
     console.log("starting MOD");
     MOD.isLoaded(function () {
-        MOD.Ajax();
+
 
         $(document).ready(function () {
             console.log("injecting menu");
 
             Menu.init();
+
+            MOD.Ajax();
         })
 
     });
