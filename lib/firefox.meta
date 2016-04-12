@@ -1,0 +1,24 @@
+// ==UserScript==
+// @name {name}
+// @namespace http://screepts.com
+// @version {version}
+// @description {description}
+// @copyright 2016 screepts.com
+// @include *://mobwars-prod-ssl.metamoki.com/*
+// @include *://apps.facebook.com/mobwars/*
+// @include *://lb0.mw.production.monstergamesinc.com/*
+// @include *://lb.mobwars.metamoki.com/*
+// @match *://mobwars-prod-ssl.metamoki.com/*
+// @match *://apps.facebook.com/mobwars/*
+// @match *://lb0.mw.production.monstergamesinc.com/*
+// @match *://lb.mobwars.metamoki.com/*
+// @icon           http://mwscripts.screepts.netdna-cdn.com/images/lucifersicon.jpg
+// @grant 		    GM_xmlhttpRequest
+// @grant       	GM_getValue
+// @grant       	GM_setValue
+// @grant       	GM_deleteValue
+// @grant          	GM_addStyle
+// @grant          	unsafeWindow
+// ==/UserScript==
+
+/** end of firefox.meta **/
